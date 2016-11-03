@@ -13,9 +13,9 @@ whenever sqlerror exit sql.sqlcode rollback
 begin
 wwv_flow_api.import_begin (
  p_version_yyyy_mm_dd=>'2013.01.01'
-,p_release=>'5.0.2.00.07'
+,p_release=>'5.0.4.00.12'
 ,p_default_workspace_id=>13707805413010735447
-,p_default_application_id=>52892
+,p_default_application_id=>528922
 ,p_default_owner=>'JOSEPCOVES'
 );
 end;
@@ -28,7 +28,7 @@ end;
 prompt --application/shared_components/plugins/item_type/nl_warp11_apex_gmaps
 begin
 wwv_flow_api.create_plugin(
- p_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172791097624928973)
 ,p_plugin_type=>'ITEM TYPE'
 ,p_name=>'NL.WARP11.APEX.GMAPS'
 ,p_display_name=>'Warp11 GMaps Item (Ampliado JCoves)'
@@ -51,7 +51,7 @@ wwv_flow_api.create_plugin(
 '  t_mapTypeControl_style    varchar2(32767)  := p_item.attribute_06;',
 '  t_address                 varchar2(32767)  := p_item.attribute_07;',
 '  t_markers_address         varchar2(32767); --  := p_item.attribute_08;',
-'  t_markers_html_content    varchar2(32767); --  := p_item.attribute_09;',
+'  t_markers_html_content    clob;--varchar2(32767); --  := p_item.attribute_09;',
 '  --Added by JCoves',
 '  t_pin_icon                varchar2(32767); -- := p_item.attribute_08;',
 '  t_latlong                 varchar2(32767); -- := p_item.attribute_09;',
@@ -70,8 +70,16 @@ wwv_flow_api.create_plugin(
 '    end case;',
 '  end;',
 '  ',
-'  function do_subststring(p_htmlcontent in varchar2) return varchar2 is',
+'  /*function do_subststring(p_htmlcontent in varchar2) return varchar2 is',
 '    t_retval varchar2(32767) := p_htmlcontent;',
+'  begin',
+'    t_retval := replace(t_retval, ''#APP_IMAGES''       || ''#'', v(''APP_IMAGES''));',
+'    t_retval := replace(t_retval, ''#WORKSPACE_IMAGES'' || ''#'', v(''WORKSPACE_IMAGES''));',
+'    return t_retval;',
+'  end do_subststring;*/',
+'  ',
+'  function do_subststring(p_htmlcontent in clob) return clob is',
+'    t_retval clob := p_htmlcontent;',
 '  begin',
 '    t_retval := replace(t_retval, ''#APP_IMAGES''       || ''#'', v(''APP_IMAGES''));',
 '    t_retval := replace(t_retval, ''#WORKSPACE_IMAGES'' || ''#'', v(''WORKSPACE_IMAGES''));',
@@ -99,12 +107,13 @@ wwv_flow_api.create_plugin(
 '                             p_max_columns    => 7, ',
 '                             p_component_name => p_item.id); --Modified by JCoves (from 4 to 7)',
 '  ',
-'  htp.p(''  <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>'');',
+'  htp.p(''  <script type="text/javascript" src="//maps.google.com/maps/api/js?sensor=false"></script>'');',
 '--  htp.p(''  <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>''); --20141103 JCoves: Cal afegir una opció per suportar https sinó no funciona',
 '  htp.p(''<div id="'' || t_divid || ''" style="width: 300px; height: 300px; background-color: green;"></div>'');',
 '  htp.p(''<script language="javascript">'');',
-'  htp.p(''  <!--'');',
-'  htp.p(''    $(function() {'');',
+'  --htp.p(''  <!--'');',
+'  htp.p('' function loadMap(){''); -- JCoves 20160519',
+'  --htp.p(''    $(function() {''); -- JCoves 20160519',
 '  htp.p(''      $("#'' || t_divid || ''").goMap({'');',
 '  htp.p(''        ''||p_item.element_attributes); --JCoves Additional attributes available',
 '  htp.p(''        streetViewControl: '' || t_streetview || '','');',
@@ -161,7 +170,7 @@ wwv_flow_api.create_plugin(
 '      end if;',
 '      --End JCoves',
 '      htp.p(''              html: {'');',
-'      htp.p(''                content: ''''<div style="width: '' || to_char(to_number(p_item.element_width)-200) || ''px;">'' || replace(do_subststring(t_markers_html_content), '''''''', ''\'''''') || ''</div>'''','');',
+'      htp.p(''                content: ''''<div style="width: '' || to_char(to_number(p_item.element_width)-200) || ''px;">'' || replace(/*do_subststring*/(t_markers_html_content), '''''''', ''\'''''') || ''</div>'''','');',
 '      htp.p(''                popup: '' || t_infovisible || '''');',
 '        htp.p(''              }'');',
 '      if i = t_column_value_list(1).count then',
@@ -176,8 +185,11 @@ wwv_flow_api.create_plugin(
 '  htp.p(''      });'');',
 '  htp.p(''      $("#'' || t_divid || ''").height('' || p_item.element_height || '');'');',
 '  htp.p(''      $("#'' || t_divid || ''").width('' || p_item.element_width || '');'');',
-'  htp.p(''    });'');',
-'  htp.p(''  -->'');',
+'  --htp.p(''    });'');-- JCoves 20160519',
+'  htp.p('' }'');-- JCoves 20160519',
+'  htp.p(''document.addEventListener("DOMContentLoaded", function(event) { loadMap() });'');',
+' --htp.p(''    $(document).ready(loadMap()); ''); -- JCoves 20160519',
+'  --htp.p(''  -->'');',
 '  htp.p(''</script>'');/**/',
 '  return null;',
 'end render_gmap;'))
@@ -201,7 +213,15 @@ wwv_flow_api.create_plugin(
 '	Updated by JCoves</p>',
 '<p>',
 '	================</p>',
-'<strong>Last updated: 10/07/2015. Version 1.1 new features:</strong>',
+'',
+'<strong>Last update: 03/11/2016. Version 1.2 new features:</strong>',
+'<ul>',
+'<li>Corrected error with Universal Theme to prevent map provperly. No need to call loadMap function as previosly. Seems to work at all browsers except IE8, in its case you need to create a Dynamic Action to fire loadMap() function.</li>',
+'</ul>',
+'<strong>update: 10/07/2015. Version 1.1 new features:</strong>',
+'<p><stong>IMPORTANT Note for Universal Theme:</strong> In case you are using Universal Theme, you need to create a Dynamic Action on Page load with following JavaScript code, otherwise plugin will render a green square and won''t work:',
+'<p><i>if ($.isFunction(''loadMap'')) loadMap();</i></p>',
+'</p>',
 '<ul>',
 '<li>Upgraded inner gomaps plugin to version 1.3.3 (includes Googlemaps v3)</li>',
 '<li>Added possibility to group plugins using new sql column group</li>',
@@ -253,14 +273,14 @@ wwv_flow_api.create_plugin(
 '	Width and Hight of the page-item are used to create the map.</p>',
 '<p>',
 '	More information can be found at <a href="http://apex.warp11.nl" target="_blank">http://apex.warp11.nl</a></p>'))
-,p_version_identifier=>'1.6'
-,p_about_url=>'http://apex.warp11.nl'
+,p_version_identifier=>'1.7'
+,p_about_url=>'http://www.relational.es'
 ,p_plugin_comment=>'Thanks to http://www.pittss.lv/jquery/gomap/ for the jQuery plugin.'
 ,p_files_version=>2
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26687606577656319570)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71176071002040349299)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>1
 ,p_display_sequence=>10
@@ -272,8 +292,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_help_text=>'Do you want the little puppet to appear on the map?'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26684330103715908097)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172794528099937826)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>2
 ,p_display_sequence=>20
@@ -284,8 +304,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_is_translatable=>false
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26684336678351919658)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172801102735949387)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>3
 ,p_display_sequence=>30
@@ -297,36 +317,36 @@ wwv_flow_api.create_plugin_attribute(
 ,p_lov_type=>'STATIC'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684337782853920904)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684336678351919658)
+ p_id=>wwv_flow_api.id(71172802207237950633)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172801102735949387)
 ,p_display_sequence=>10
 ,p_display_value=>'HYBRID'
 ,p_return_value=>'HYBRID'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684338285277921686)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684336678351919658)
+ p_id=>wwv_flow_api.id(71172802709661951415)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172801102735949387)
 ,p_display_sequence=>20
 ,p_display_value=>'ROADMAP'
 ,p_return_value=>'ROADMAP'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684338688047922413)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684336678351919658)
+ p_id=>wwv_flow_api.id(71172803112431952142)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172801102735949387)
 ,p_display_sequence=>30
 ,p_display_value=>'SATELLITE'
 ,p_return_value=>'SATELLITE'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684339589779922985)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684336678351919658)
+ p_id=>wwv_flow_api.id(71172804014163952714)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172801102735949387)
 ,p_display_sequence=>40
 ,p_display_value=>'TERRAIN'
 ,p_return_value=>'TERRAIN'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26684341400861926147)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172805825245955876)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>4
 ,p_display_sequence=>40
@@ -337,8 +357,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_is_translatable=>false
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26684343079174929310)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172807503558959039)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>5
 ,p_display_sequence=>50
@@ -349,64 +369,64 @@ wwv_flow_api.create_plugin_attribute(
 ,p_lov_type=>'STATIC'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684343982984930403)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172808407368960132)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>10
 ,p_display_value=>'TOP'
 ,p_return_value=>'TOP'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684349885754931204)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172814310138960933)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>20
 ,p_display_value=>'TOP_LEFT'
 ,p_return_value=>'TOP_LEFT'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684350487486931731)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172814911870961460)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>30
 ,p_display_value=>'TOP_RIGHT'
 ,p_return_value=>'TOP_RIGHT'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684350889217932238)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172815313601961967)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>40
 ,p_display_value=>'BOTTOM'
 ,p_return_value=>'BOTTOM'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684351291641932903)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172815716025962632)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>50
 ,p_display_value=>'BOTTOM_LEFT'
 ,p_return_value=>'BOTTOM_LEFT'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684351693027933319)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172816117411963048)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>60
 ,p_display_value=>'BOTTOM_RIGHT'
 ,p_return_value=>'BOTTOM_RIGHT'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684352095451934025)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172816519835963754)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>70
 ,p_display_value=>'LEFT'
 ,p_return_value=>'LEFT'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684352497875934784)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684343079174929310)
+ p_id=>wwv_flow_api.id(71172816922259964513)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172807503558959039)
 ,p_display_sequence=>80
 ,p_display_value=>'RIGHT'
 ,p_return_value=>'RIGHT'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26684355792250952010)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172820216634981739)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>6
 ,p_display_sequence=>60
@@ -418,29 +438,29 @@ wwv_flow_api.create_plugin_attribute(
 ,p_lov_type=>'STATIC'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684356394327952613)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684355792250952010)
+ p_id=>wwv_flow_api.id(71172820818711982342)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172820216634981739)
 ,p_display_sequence=>10
 ,p_display_value=>'DEFAULT'
 ,p_return_value=>'DEFAULT'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684357804717955682)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684355792250952010)
+ p_id=>wwv_flow_api.id(71172822229101985411)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172820216634981739)
 ,p_display_sequence=>20
 ,p_display_value=>'DROPDOWN_MENU'
 ,p_return_value=>'DROPDOWN_MENU'
 );
 wwv_flow_api.create_plugin_attr_value(
- p_id=>wwv_flow_api.id(26684358175758956720)
-,p_plugin_attribute_id=>wwv_flow_api.id(26684355792250952010)
+ p_id=>wwv_flow_api.id(71172822600142986449)
+,p_plugin_attribute_id=>wwv_flow_api.id(71172820216634981739)
 ,p_display_sequence=>30
 ,p_display_value=>'HORIZONTAL_BAR'
 ,p_return_value=>'HORIZONTAL_BAR'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26684358886493959863)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172823310877989592)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>7
 ,p_display_sequence=>70
@@ -451,8 +471,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_help_text=>'Type the name of a page item containing the address to show.'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(1432326742436171722)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(45920791166820201451)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>8
 ,p_display_sequence=>80
@@ -464,8 +484,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_attribute_comment=>'Extensión por JCOVES 20110725'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(1432417436278532144)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(45920881860662561873)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>9
 ,p_display_sequence=>90
@@ -474,13 +494,13 @@ wwv_flow_api.create_plugin_attribute(
 ,p_is_required=>false
 ,p_default_value=>'0.0, 0.0'
 ,p_is_translatable=>false
-,p_depending_on_attribute_id=>wwv_flow_api.id(26684358886493959863)
+,p_depending_on_attribute_id=>wwv_flow_api.id(71172823310877989592)
 ,p_depending_on_condition_type=>'NULL'
 ,p_help_text=>'Enter latitude and longitude separated by comma instead of address if you need to increase performance. Example: 41.380268, 2.190475'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(26684376673727984502)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172841098112014231)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>10
 ,p_display_sequence=>100
@@ -491,8 +511,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_help_text=>'between 0 and 21'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(9129547858249125166)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(53618012282633154895)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>11
 ,p_display_sequence=>110
@@ -621,8 +641,8 @@ end;
 /
 begin
 wwv_flow_api.create_plugin_file(
- p_id=>wwv_flow_api.id(8991826515659159938)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(53480290940043189667)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_file_name=>'jquery.gomap-1.3.3.min.js'
 ,p_mime_type=>'application/javascript'
 ,p_file_charset=>'utf-8'
@@ -708,8 +728,8 @@ end;
 /
 begin
 wwv_flow_api.create_plugin_file(
- p_id=>wwv_flow_api.id(26684327603093902529)
-,p_plugin_id=>wwv_flow_api.id(26684326673240899244)
+ p_id=>wwv_flow_api.id(71172792027477932258)
+,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
 ,p_file_name=>'jquery.gomap-1.2.2.min.js'
 ,p_mime_type=>'application/x-javascript'
 ,p_file_content=>wwv_flow_api.varchar2_to_blob(wwv_flow_api.g_varchar2_table)
