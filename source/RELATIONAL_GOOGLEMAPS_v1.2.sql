@@ -1,4 +1,3 @@
-prompt --application/set_environment
 set define off verify off feedback off
 whenever sqlerror exit sql.sqlcode rollback
 --------------------------------------------------------------------------------
@@ -6,19 +5,24 @@ whenever sqlerror exit sql.sqlcode rollback
 -- ORACLE Application Express (APEX) export file
 --
 -- You should run the script connected to SQL*Plus as the Oracle user
--- APEX_180200 or as the owner (parsing schema) of the application.
+-- APEX_050000 or as the owner (parsing schema) of the application.
 --
 -- NOTE: Calls to apex_application_install override the defaults below.
 --
 --------------------------------------------------------------------------------
 begin
 wwv_flow_api.import_begin (
- p_version_yyyy_mm_dd=>'2018.05.24'
-,p_release=>'18.2.0.00.12'
+ p_version_yyyy_mm_dd=>'2013.01.01'
+,p_release=>'5.0.4.00.12'
 ,p_default_workspace_id=>13707805413010735447
 ,p_default_application_id=>528922
 ,p_default_owner=>'JOSEPCOVES'
 );
+end;
+/
+prompt --application/ui_types
+begin
+null;
 end;
 /
 prompt --application/shared_components/plugins/item_type/nl_warp11_apex_gmaps
@@ -29,8 +33,7 @@ wwv_flow_api.create_plugin(
 ,p_name=>'NL.WARP11.APEX.GMAPS'
 ,p_display_name=>'Warp11 GMaps Item (Ampliado JCoves)'
 ,p_supported_ui_types=>'DESKTOP'
-,p_supported_component_types=>'APEX_APPLICATION_PAGE_ITEMS'
-,p_plsql_code=>wwv_flow_string.join(wwv_flow_t_varchar2(
+,p_plsql_code=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
 'function render_gmap(',
 '   p_item                IN APEX_PLUGIN.T_PAGE_ITEM,',
 '   p_plugin              IN APEX_PLUGIN.T_PLUGIN,',
@@ -53,7 +56,6 @@ wwv_flow_api.create_plugin(
 '  t_pin_icon                varchar2(32767); -- := p_item.attribute_08;',
 '  t_latlong                 varchar2(32767); -- := p_item.attribute_09;',
 '  t_group                   varchar2(32767);--  := p_item.attribute_11;',
-'  t_key                     varchar2(32767) := p_item.attribute_12;  ',
 '  --End JCoves',
 '  t_zoom                    varchar2(32767)  := p_item.attribute_10;',
 '  ',
@@ -104,11 +106,9 @@ wwv_flow_api.create_plugin(
 '                             p_min_columns    => 4,',
 '                             p_max_columns    => 7, ',
 '                             p_component_name => p_item.id); --Modified by JCoves (from 4 to 7)',
-'    ',
 '  ',
-'  htp.p(''  <script type="text/javascript" src="//maps.google.com/maps/api/js?key=''||t_key||''&sensor=false"></script>'');',
-' ',
-unistr('--  htp.p(''  <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>''); --20141103 JCoves: Cal afegir una opci\00F3 per suportar https sin\00F3 no funciona'),
+'  htp.p(''  <script type="text/javascript" src="//maps.google.com/maps/api/js?sensor=false"></script>'');',
+'--  htp.p(''  <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>''); --20141103 JCoves: Cal afegir una opció per suportar https sinó no funciona',
 '  htp.p(''<div id="'' || t_divid || ''" style="width: 300px; height: 300px; background-color: green;"></div>'');',
 '  htp.p(''<script language="javascript">'');',
 '  --htp.p(''  <!--'');',
@@ -124,8 +124,7 @@ unistr('--  htp.p(''  <script type="text/javascript" src="https://maps.google.co
 '  htp.p(''          position: '''''' || t_mapTypeControl_position || '''''','');',
 '  htp.p(''          style: '''''' || t_mapTypeControl_style || '''''''');',
 '  htp.p(''        },'');',
-'  --htp.p(''        address: '''''' || v(t_address) || '''''','');',
-'  htp.p(''          center:{lat: -34.397, lng: 150.644}, zoom: ''||t_zoom||'','');',
+'  htp.p(''        address: '''''' || v(t_address) || '''''','');',
 '  htp.p(''        markers: ['');',
 '  ',
 '  for i in 1 .. t_column_value_list(1).count /* label */',
@@ -188,27 +187,34 @@ unistr('--  htp.p(''  <script type="text/javascript" src="https://maps.google.co
 '  htp.p(''      $("#'' || t_divid || ''").width('' || p_item.element_width || '');'');',
 '  --htp.p(''    });'');-- JCoves 20160519',
 '  htp.p('' }'');-- JCoves 20160519',
-'  htp.p(''document.addEventListener("DOMContentLoaded", function(event) { loadMap() });'');-- JCoves 20181004',
+'  htp.p(''document.addEventListener("DOMContentLoaded", function(event) { loadMap() });'');',
 ' --htp.p(''    $(document).ready(loadMap()); ''); -- JCoves 20160519',
 '  --htp.p(''  -->'');',
 '  htp.p(''</script>'');/**/',
 '  return null;',
 'end render_gmap;'))
-,p_api_version=>1
 ,p_render_function=>'render_gmap'
-,p_standard_attributes=>'VISIBLE:ELEMENT:WIDTH:HEIGHT:ELEMENT_OPTION:LOV'
+,p_standard_attributes=>'VISIBLE:ELEMENT:WIDTH:HEIGHT:ELEMENT_OPTION:LOV:LOV_REQUIRED'
+,p_sql_min_column_count=>4
+,p_sql_max_column_count=>6
+,p_sql_examples=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
+'select address',
+',      title',
+',      markerhtml',
+',      infobaxvisible -- true/false',
+',      icon --Image URL',
+',      latlong --Latitude, longitude separated by comma',
+',      group --Icon group in order to execute 	$.goMap.showHideMarkerByGroup(group, true);',
+'from WARP_ADDRESSES t'))
 ,p_substitute_attributes=>true
 ,p_subscribe_plugin_settings=>true
-,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
+,p_help_text=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
 '<p>',
 '	Updated by JCoves</p>',
 '<p>',
 '	================</p>',
-'<strong>Last updated: 04/10/2018. Version 1.3 new features:</strong>',
-'<ul>',
-'<li>Added parameter Googlemaps API Key. To solve map only for development purposes with message: "do you own this web site?" </li>',
-'</ul>',
-'<strong>update: 03/11/2016. Version 1.2 new features:</strong>',
+'',
+'<strong>Last update: 03/11/2016. Version 1.2 new features:</strong>',
 '<ul>',
 '<li>Corrected error with Universal Theme to prevent map provperly. No need to call loadMap function as previosly. Seems to work at all browsers except IE8, in its case you need to create a Dynamic Action to fire loadMap() function.</li>',
 '</ul>',
@@ -267,7 +273,7 @@ unistr('--  htp.p(''  <script type="text/javascript" src="https://maps.google.co
 '	Width and Hight of the page-item are used to create the map.</p>',
 '<p>',
 '	More information can be found at <a href="http://apex.warp11.nl" target="_blank">http://apex.warp11.nl</a></p>'))
-,p_version_identifier=>'1.3'
+,p_version_identifier=>'1.7'
 ,p_about_url=>'http://www.relational.es'
 ,p_plugin_comment=>'Thanks to http://www.pittss.lv/jquery/gomap/ for the jQuery plugin.'
 ,p_files_version=>2
@@ -475,7 +481,7 @@ wwv_flow_api.create_plugin_attribute(
 ,p_is_required=>false
 ,p_is_translatable=>false
 ,p_help_text=>'Specify an icon to overwrite GMAP''s pin'
-,p_attribute_comment=>unistr('Extensi\00F3n por JCOVES 20110725')
+,p_attribute_comment=>'Extensión por JCOVES 20110725'
 );
 wwv_flow_api.create_plugin_attribute(
  p_id=>wwv_flow_api.id(45920881860662561873)
@@ -489,7 +495,6 @@ wwv_flow_api.create_plugin_attribute(
 ,p_default_value=>'0.0, 0.0'
 ,p_is_translatable=>false
 ,p_depending_on_attribute_id=>wwv_flow_api.id(71172823310877989592)
-,p_depending_on_has_to_exist=>true
 ,p_depending_on_condition_type=>'NULL'
 ,p_help_text=>'Enter latitude and longitude separated by comma instead of address if you need to increase performance. Example: 41.380268, 2.190475'
 );
@@ -517,34 +522,6 @@ wwv_flow_api.create_plugin_attribute(
 ,p_display_length=>3
 ,p_supported_ui_types=>'DESKTOP:JQM_SMARTPHONE'
 ,p_is_translatable=>false
-);
-wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(2811631760641378993)
-,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
-,p_attribute_scope=>'COMPONENT'
-,p_attribute_sequence=>12
-,p_display_sequence=>120
-,p_prompt=>'Google API key'
-,p_attribute_type=>'TEXT'
-,p_is_required=>false
-,p_is_translatable=>false
-,p_help_text=>'Google API key  https://cloud.google.com/maps-platform/'
-);
-wwv_flow_api.create_plugin_std_attribute(
- p_id=>wwv_flow_api.id(29590429478321843)
-,p_plugin_id=>wwv_flow_api.id(71172791097624928973)
-,p_name=>'LOV'
-,p_sql_min_column_count=>4
-,p_sql_max_column_count=>6
-,p_examples=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'select address',
-',      title',
-',      markerhtml',
-',      infobaxvisible -- true/false',
-',      icon --Image URL',
-',      latlong --Latitude, longitude separated by comma',
-',      group --Icon group in order to execute 	$.goMap.showHideMarkerByGroup(group, true);',
-'from WARP_ADDRESSES t'))
 );
 end;
 /
