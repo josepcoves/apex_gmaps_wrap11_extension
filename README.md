@@ -2,6 +2,14 @@
 	Updated by JCoves</p>
 <p>
 	================</p>
+<strong>Last updated: 04/10/2018. Version 1.3 new features:</strong>
+<ul>
+<li>Added parameter Googlemaps API Key. To solve map only for development purposes with message: "do you own this web site?" </li>
+</ul>
+<strong>update: 03/11/2016. Version 1.2 new features:</strong>
+<ul>
+<li>Corrected error with Universal Theme to prevent map provperly. No need to call loadMap function as previosly. Seems to work at all browsers except IE8, in its case you need to create a Dynamic Action to fire loadMap() function.</li>
+</ul>
 <strong>Last updated: 10/07/2015. Version 1.1 new features:</strong>
 <ul>
 <li>Upgraded inner gomaps plugin to version 1.3.3 (includes Googlemaps v3)</li>
