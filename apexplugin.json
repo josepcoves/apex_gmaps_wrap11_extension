@@ -1,6 +1,6 @@
 {
-  "name" : "WARP11 GMAPS - Relational extension",
-  "version" : "1.1",
+  "name" : "Googlemaps - goMap (with Google API)",
+  "version" : "1.3",
   "description" : "This is an extension of Warp11 Googlemaps plugin. Added the possibility of geolocating via latitude and longitude and using custom icons. ",
   "keywords" : ["googlemaps", "apex", "plugin", "oracle", "item", "maps", "geolocation","latitude","longitude","coordinates"],
   "homepage" : "https://github.com/josepcoves/apex_gmaps_wrap11_extension",
@@ -21,7 +21,7 @@
  "oracle" : {                                            
     "versions" : ["11.2.0.1", "12.1.0.1"],
     "apex" : {
-      "versions" : ["4.0.1","5.0.0","5.0.1"],
+      "versions" : ["4.0.1","5.0.0","5.0.1","18,0","18.1"],
       "plugin" : {
         "internalName" : "NL.WARP11.APEX.GMAPS",
         "type" : "item",
